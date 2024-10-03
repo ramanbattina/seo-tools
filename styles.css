@@ -114,19 +114,43 @@ button:hover {
 
 #categoryFilter {
     margin-bottom: 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+}
+
+#categoryFilter::-webkit-scrollbar { /* WebKit */
+    width: 0;
+    height: 0;
 }
 
 .category-button {
+    display: inline-block;
     background-color: #f0f0f0;
     border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 5px 10px;
-    margin-right: 5px;
-    margin-bottom: 5px;
+    border-radius: 20px;
+    padding: 8px 16px;
+    margin-right: 8px;
+    margin-bottom: 8px;
     cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.category-button:hover {
+    background-color: #e0e0e0;
 }
 
 .category-button.active {
     background-color: #007bff;
     color: white;
+    border-color: #007bff;
+}
+
+@media (max-width: 768px) {
+    #categoryFilter {
+        padding-bottom: 10px;
+    }
 }

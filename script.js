@@ -52,6 +52,12 @@
                 `<button class="category-button ${category === currentCategory ? 'active' : ''}" 
                  onclick="selectCategory('${category}')">${category}</button>`
             ).join('');
+
+            // Scroll to active category
+            const activeButton = categoryFilter.querySelector('.active');
+            if (activeButton) {
+                activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
         }
 
         function selectCategory(category) {
@@ -59,6 +65,7 @@
             currentPage = 1;
             renderCategoryFilter();
             filterResources();
+            scrollToActiveCategory();
         }
 
         function filterResources() {
@@ -96,6 +103,14 @@
             renderResources(filteredResources.slice(startIndex, endIndex));
             document.getElementById('loadMoreButton').style.display = 
                 filteredResources.length > endIndex ? 'block' : 'none';
+        }
+
+        function scrollToActiveCategory() {
+            const categoryFilter = document.getElementById('categoryFilter');
+            const activeButton = categoryFilter.querySelector('.active');
+            if (activeButton) {
+                activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
