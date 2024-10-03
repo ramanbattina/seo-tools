@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools and Resources Directory</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Tools and Resources Directory</h1>
+    <div id="loadingIndicator">Loading resources...</div>
+    <div id="resourceList"></div>
+    <form id="resourceForm">
+        <input type="hidden" id="id">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="text" id="description" placeholder="Description" required>
+        <input type="url" id="url" placeholder="URL" required>
+        <input type="text" id="category" placeholder="Category" required>
+        <button type="submit">Add/Update Resource</button>
+    </form>
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNJFg4N6xewWBfCzruMzCcfP1XQvG6i2b10Y7jPT7LAt4wJQ3aY9fPqjrWf4OunexMaQ/exec';
+        let cachedResources = null;
+
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        }
+
+        async function fetchResources(forceRefresh = false) {
+            if (cachedResources && !forceRefresh) {
+                renderResources(cachedResources);
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=read`);
+                const data = await response.json();
+                cachedResources = data;
+                renderResources(data);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to fetch resources. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function renderResources(data) {
+            const resourceList = document.getElementById('resourceList');
+            resourceList.innerHTML = '';
+            data.forEach(resource => {
+                const div = document.createElement('div');
+                div.className = 'resource-card';
+                div.innerHTML = `
+                    <h3>${resource.Name}</h3>
+                    <p>${resource.Description}</p>
+                    <p>Category: ${resource.Category}</p>
+                    <a href="${resource.URL}" target="_blank">Visit</a>
+                    <button onclick="editResource(${resource.ID})">Edit</button>
+                    <button onclick="deleteResource(${resource.ID})">Delete</button>
+                `;
+                resourceList.appendChild(div);
+            });
+        }
+
+        async function editResource(id) {
+            showLoading(true);
+            try {
+                const resource = cachedResources.find(r => r.ID === id);
+                if (resource) {
+                    document.getElementById('id').value = resource.ID;
+                    document.getElementById('name').value = resource.Name;
+                    document.getElementById('description').value = resource.Description;
+                    document.getElementById('url').value = resource.URL;
+                    document.getElementById('category').value = resource.Category;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to edit resource. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function deleteResource(id) {
+            if (confirm('Are you sure you want to delete this resource?')) {
+                showLoading(true);
+                try {
+                    const response = await fetch(`${SCRIPT_URL}?action=delete&id=${id}`);
+                    const result = await response.json();
+                    alert(result.message || result.error);
+                    await fetchResources(true);
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to delete resource. Please try again.');
+                } finally {
+                    showLoading(false);
+                }
+            }
+        }
+
+        document.getElementById('resourceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showLoading(true);
+            const id = document.getElementById('id').value;
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            const url = document.getElementById('url').value;
+            const category = document.getElementById('category').value;
+
+            const action = id ? 'update' : 'create';
+            const params = `action=${action}&id=${id}&name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}&url=${encodeURIComponent(url)}&category=${encodeURIComponent(category)}`;
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?${params}`);
+                const result = await response.json();
+                alert(result.message || result.error);
+                await fetchResources(true);
+                this.reset();
+                document.getElementById('id').value = '';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to save resource. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Initial fetch
+        fetchResources();
+    </script>
+</body>
+</html>
