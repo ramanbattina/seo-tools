@@ -10,6 +10,8 @@
     <h1>Tools and Resources Directory</h1>
     <div id="loadingIndicator">Loading resources...</div>
     <div id="resourceList"></div>
+    <button id="loadMoreButton" style="display: none;">Load More</button>
+    <button id="refreshButton">Refresh Data</button>
     <form id="resourceForm">
         <input type="hidden" id="id">
         <input type="text" id="name" placeholder="Name" required>
@@ -21,15 +23,26 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNJFg4N6xewWBfCzruMzCcfP1XQvG6i2b10Y7jPT7LAt4wJQ3aY9fPqjrWf4OunexMaQ/exec';
         let cachedResources = null;
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
 
         function showLoading(show) {
             document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
         }
 
         async function fetchResources(forceRefresh = false) {
-            if (cachedResources && !forceRefresh) {
-                renderResources(cachedResources);
-                return;
+            if (!forceRefresh) {
+                const cachedData = localStorage.getItem('resourcesCache');
+                const lastUpdated = localStorage.getItem('lastUpdated');
+                if (cachedData && lastUpdated) {
+                    const parsedData = JSON.parse(cachedData);
+                    const cacheAge = Date.now() - parseInt(lastUpdated);
+                    if (cacheAge < 3600000) { // Cache is less than 1 hour old
+                        cachedResources = parsedData;
+                        renderResources(parsedData.slice(0, PAGE_SIZE));
+                        return;
+                    }
+                }
             }
 
             showLoading(true);
@@ -37,7 +50,9 @@
                 const response = await fetch(`${SCRIPT_URL}?action=read`);
                 const data = await response.json();
                 cachedResources = data;
-                renderResources(data);
+                localStorage.setItem('resourcesCache', JSON.stringify(data));
+                localStorage.setItem('lastUpdated', Date.now().toString());
+                renderResources(data.slice(0, PAGE_SIZE));
             } catch (error) {
                 console.error('Error:', error);
                 alert('Failed to fetch resources. Please try again.');
@@ -48,7 +63,6 @@
 
         function renderResources(data) {
             const resourceList = document.getElementById('resourceList');
-            resourceList.innerHTML = '';
             data.forEach(resource => {
                 const div = document.createElement('div');
                 div.className = 'resource-card';
@@ -62,6 +76,16 @@
                 `;
                 resourceList.appendChild(div);
             });
+            
+            document.getElementById('loadMoreButton').style.display = 
+                cachedResources.length > currentPage * PAGE_SIZE ? 'block' : 'none';
+        }
+
+        function loadMore() {
+            currentPage++;
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            renderResources(cachedResources.slice(startIndex, endIndex));
         }
 
         async function editResource(id) {
@@ -126,6 +150,9 @@
                 showLoading(false);
             }
         });
+
+        document.getElementById('loadMoreButton').addEventListener('click', loadMore);
+        document.getElementById('refreshButton').addEventListener('click', () => fetchResources(true));
 
         // Initial fetch
         fetchResources();
