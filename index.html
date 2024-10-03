@@ -62,9 +62,9 @@
                 div.innerHTML = `
                     <h3>${resource.Name}</h3>
                     <p>${resource.Description}</p>
-                    <p>Category: ${resource.Category}</p>
-                    <a href="${resource.URL}" target="_blank">Visit</a>
+                    <span class="category-tag">${resource.Category}</span>
                 `;
+                div.addEventListener('click', () => window.open(resource.URL, '_blank'));
                 resourceList.appendChild(div);
             });
             
