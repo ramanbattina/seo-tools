@@ -28,6 +28,7 @@
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=read`);
                 const data = await response.json();
+                console.log('Fetched data:', data); // For debugging
                 cachedResources = data;
                 localStorage.setItem('resourcesCache', JSON.stringify(data));
                 localStorage.setItem('lastUpdated', Date.now().toString());
@@ -41,31 +42,16 @@
         }
 
         function processResources() {
-            categories = ['All', ...new Set(cachedResources.map(resource => resource.Category))];
-            renderCategoryFilter();
+            categories = ['All', ...new Set(cachedResources.map(resource => resource.Category).filter(Boolean))];
+            renderCategoryMenu();
             filterResources();
         }
 
-        function renderCategoryFilter() {
-            const categoryFilter = document.getElementById('categoryFilter');
-            categoryFilter.innerHTML = categories.map(category => 
-                `<button class="category-button ${category === currentCategory ? 'active' : ''}" 
-                 onclick="selectCategory('${category}')">${category}</button>`
+        function renderCategoryMenu() {
+            const categorySelect = document.getElementById('categorySelect');
+            categorySelect.innerHTML = categories.map(category => 
+                `<option value="${category}" ${category === currentCategory ? 'selected' : ''}>${category}</option>`
             ).join('');
-
-            // Scroll to active category
-            const activeButton = categoryFilter.querySelector('.active');
-            if (activeButton) {
-                activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            }
-        }
-
-        function selectCategory(category) {
-            currentCategory = category;
-            currentPage = 1;
-            renderCategoryFilter();
-            filterResources();
-            scrollToActiveCategory();
         }
 
         function filterResources() {
@@ -105,18 +91,19 @@
                 filteredResources.length > endIndex ? 'block' : 'none';
         }
 
-        function scrollToActiveCategory() {
-            const categoryFilter = document.getElementById('categoryFilter');
-            const activeButton = categoryFilter.querySelector('.active');
-            if (activeButton) {
-                activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
+            const categorySelect = document.getElementById('categorySelect');
+            categorySelect.addEventListener('change', (e) => {
+                currentCategory = e.target.value;
+                currentPage = 1;
+                filterResources();
+            });
+
             document.getElementById('loadMoreButton').addEventListener('click', loadMore);
             document.getElementById('refreshButton').addEventListener('click', () => fetchResources(true));
 
             // Initial fetch
             fetchResources();
         });
+
+

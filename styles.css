@@ -114,28 +114,29 @@ button:hover {
 
 #categoryFilter {
     margin-bottom: 20px;
+    display: flex;
+    flex-wrap: nowrap;
     overflow-x: auto;
-    white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    padding-bottom: 5px; /* Space for potential scrollbar */
 }
 
-#categoryFilter::-webkit-scrollbar { /* WebKit */
-    width: 0;
-    height: 0;
+#categoryFilter::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .category-button {
-    display: inline-block;
+    flex: 0 0 auto;
     background-color: #f0f0f0;
     border: 1px solid #ddd;
-    border-radius: 20px;
-    padding: 8px 16px;
+    border-radius: 15px;
+    padding: 5px 10px;
     margin-right: 8px;
-    margin-bottom: 8px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
+    white-space: nowrap;
     transition: all 0.3s ease;
 }
 
@@ -153,4 +154,31 @@ button:hover {
     #categoryFilter {
         padding-bottom: 10px;
     }
+}
+
+#categoryFilter::after {
+    content: var(--after-content, '');
+    position: sticky;
+    right: 0;
+    padding-left: 10px;
+    background: linear-gradient(to left, #fff, transparent);
+}
+
+#categoryMenu {
+    margin-bottom: 20px;
+}
+
+#categorySelect {
+    width: 200px;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+#categorySelect:focus {
+    outline: none;
+    border-color: #007bff;
 }
